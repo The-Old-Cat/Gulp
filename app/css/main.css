@@ -1,0 +1,28 @@
+@import '../assets/css/normalize.css';
+p {
+  color: brown;
+  font-family: "StyleScript-Regular", cursive;
+}
+
+@font-face {
+  font-family: "Cony";
+  src: url("../fonts/Cony.woff2") format(woff2), url("../fonts/Cony.woff") format(woff);
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "StyleScript-Regular";
+  src: url("../fonts/StyleScript-Regular.woff2") format(woff2), url("../fonts/StyleScript-Regular.woff") format(woff);
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+body {
+  background: url("../img/maxresdefault.jpg");
+  color: #00ff73;
+  font-family: "StyleScript-Regular";
+}
+body__h1 {
+  color: brown;
+}

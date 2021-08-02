@@ -1,0 +1,17 @@
+@import 'header';
+@import 'footer';
+@import 'mixins';
+@import 'fonts';
+@import '../assets/css/normalize.css';
+
+body{
+   background: url('../img/maxresdefault.jpg');
+    color: rgb(0, 255, 115);
+    font-family: "StyleScript-Regular";
+    &__h1{
+        color: brown;
+    }
+}
+
+
+
