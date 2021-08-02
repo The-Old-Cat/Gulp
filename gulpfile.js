@@ -1,5 +1,6 @@
 const { src, dest, parallel, series, watch} = require('gulp');
 const autoPrefixer = require('gulp-autoprefixer');
+const sourcemaps = require   ('gulp-sourcemaps');
 // const GulpCleanCss = require('gulp-clean-css');
 const sass = require('gulp-sass')(require('sass'));
 const notify = require('gulp-notify');
@@ -11,13 +12,16 @@ const ttf2woff = require ('gulp-ttf2woff');
 const ttf2woff2 = require ('gulp-ttf2woff2');
 const fs = require('fs');
 const del = require ('del');
+const webpack = require ('webpack');
+const webpackStream = require ('webpack-stream');
+const  uglify = require('gulp-uglify-es').default
 
 
 
-
-
+// Обработка шрифтов 
 const fonts = () => {
-  del(['app/fonts/*'])
+  del(['app/fonts/*']) // Очистка папки со шрифтами
+  //  конвертация 
   src('./src/fonts/**.ttf')
     .pipe(ttf2woff())
     .pipe(dest('./app/fonts/'))
@@ -29,15 +33,17 @@ const fonts = () => {
 
 const cb = () => {}
 
+// Переменные источника шрифтов 
 let srcFonts = './src/scss/_fonts.scss';
 let appSrcFonts = './src/fonts/';
 
-
+// Обработка 
 const fontsStyle = (done) => {
    
-   let file_content = fs.readFileSync(srcFonts);
+   let file_content = fs.readFileSync(srcFonts); // Чтение папки исходника
 
    fs.writeFile(srcFonts,'',cb);
+   // Формирование @include font-face  в _fonts.scss
    fs.readdir(appSrcFonts,function(err,items) {
       if(items) {
          let c_fontname;
@@ -54,6 +60,8 @@ const fontsStyle = (done) => {
    done();
 }
 
+
+// Создание svg sprite
 const svgSprites = () => {
    return src('./src/img/**/*.svg')
       .pipe(svgSprite({
@@ -67,6 +75,8 @@ const svgSprites = () => {
       .pipe(browserSync.stream());
 }
 
+
+// Обработка HTML 
 const htmlInclude = () => {
    return src(['./src/index.html'])
       .pipe(fileinclude({
@@ -77,45 +87,64 @@ const htmlInclude = () => {
       .pipe(browserSync.stream());
 }
 
+
+// Обработка scss
 const styles = () => {
    return src( './src/scss/**/*.scss')
       .pipe(sass({
          outputStyle: 'expanded'
       }).on('error', notify.onError()))
-      // .pipe(rename({
-      //    suffix:'.min'
-      // }))
       .pipe(autoPrefixer({
          cascade: false,
       }))
-      // .pipe(GulpCleanCss({
-      //    level:2
-      // }))
       .pipe(dest('./app/css'))
       .pipe(browserSync.stream());
 }
+
+// Обработка изображений
 const imgToApp = () => {
    return src(['./src/img/**.jpg' , './src/img/**.jpeg' ,'./src/img/**.png' ])
       .pipe(dest('./app/img'))
       .pipe(browserSync.stream());
 }
 
-const cssToApp = () => {
-   return src(['./src/css/**/*'])
-      .pipe(dest('./app/assets/css'))
-      .pipe(browserSync.stream());
-}
-
-const jsToApp = () => {
-   return src(['./src/js/**/*'])
-      .pipe(dest('./app/assets/js'))
-      .pipe(browserSync.stream());
-}
-
+// Очистка перед сборкой
 const clean = () => {
    return del(['app/*'])
 }
 
+// Обработка js
+const scripts = () => {
+   return src('./src/js/main.js')
+   .pipe(webpackStream({
+      output:{
+         filename:'main.js',
+      },
+      module: {
+         rules: [
+           {
+             test: /\.m?js$/,
+             exclude: /node_modules/,
+             use: {
+               loader: 'babel-loader',
+               options: {
+                 presets: [
+                   ['@babel/preset-env', { targets: "defaults" }]
+                 ]
+               }
+             }
+           }
+         ]
+       }
+   }))
+   .pipe(sourcemaps.init())
+   .pipe (uglify().on("error", notify.onError()))
+   .pipe(sourcemaps.write('.'))
+   .pipe(dest('./app/js'))
+   .pipe(browserSync.stream());
+}
+
+// Контроль изменений
 const watchFiles = () => {
    browserSync.init({
       server: {
@@ -128,16 +157,15 @@ const watchFiles = () => {
    watch('./src/img/**.png' , imgToApp);
    watch('./src/img/**.jpeg' , imgToApp);
    watch('./src/img/**/*.svg', svgSprites);
-   watch('./src/css/**/*', cssToApp);
-   watch('./src/js/**/*', jsToApp);
    watch('./src/fonts/**.ttf' , fonts);
    watch('./src/fonts/**.ttf' , fontsStyle);
-   
+   watch('./src/js/**/*.js' , scripts);
 }
+// Экспорт
 exports.watchFiles = watchFiles;
 exports.styles = styles;
 exports.fileinclude = htmlInclude;
 
 
 
-exports.default = series(clean,parallel( htmlInclude,fonts,imgToApp,svgSprites),fontsStyle,styles,watchFiles);
+exports.default = series(clean, parallel( htmlInclude,scripts,fonts,imgToApp,svgSprites),fontsStyle,styles,watchFiles);
