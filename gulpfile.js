@@ -15,7 +15,7 @@ const del = require ('del');
 const webpack = require ('webpack');
 const webpackStream = require ('webpack-stream');
 const  uglify = require('gulp-uglify-es').default
-
+const imagemin = require('gulp-imagemin');
 
 
 // Обработка шрифтов 
@@ -135,6 +135,19 @@ const imgToApp = () => {
       .pipe(browserSync.stream());
 }
 
+// Минификация картинок
+const imgMin = () => {
+  return src(['./src/img/**.jpg' , './src/img/**.jpeg' ,'./src/img/**.png' ])
+    .pipe(imagemin([
+        imagemin.gifsicle({interlaced: true}),
+        imagemin.mozjpeg({quality: 75, progressive: true}),
+        imagemin.optipng({optimizationLevel: 5}),
+        
+  ]))
+    .pipe(dest('./app/img'))
+}
+
+
 // Очистка перед сборкой
 const clean = () => {
    return del(['app/*'])
@@ -217,7 +230,9 @@ const watchFiles = () => {
    watch('./src/fonts/**.ttf' , fontsStyle);
    watch('./src/js/**/*.js' , scripts);
 }
-// Экспорт
+
+
+// Вызов функций
 exports.watchFiles = watchFiles;
 exports.styles = styles;
 exports.fileinclude = htmlInclude;
@@ -226,4 +241,4 @@ exports.fileinclude = htmlInclude;
 
 exports.default = series(clean, parallel( htmlInclude,scripts,fonts,imgToApp,svgSprites),fontsStyle,styles,watchFiles);
 
-exports.build = series(clean, parallel( htmlInclude,scriptsBuild,fonts,imgToApp,svgSprites),fontsStyle,stylesBuild,watchFiles);
+exports.build = series(clean, parallel( htmlInclude,scriptsBuild,fonts,imgToApp,imgMin,svgSprites),fontsStyle,stylesBuild,watchFiles);
