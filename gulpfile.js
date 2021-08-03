@@ -1,10 +1,10 @@
 const { src, dest, parallel, series, watch} = require('gulp');
 const autoPrefixer = require('gulp-autoprefixer');
 const sourcemaps = require   ('gulp-sourcemaps');
-// const GulpCleanCss = require('gulp-clean-css');
+const GulpCleanCss = require('gulp-clean-css');
 const sass = require('gulp-sass')(require('sass'));
 const notify = require('gulp-notify');
-// const rename = require('gulp-rename');
+const rename = require('gulp-rename');
 const browserSync = require('browser-sync').create();
 const fileinclude = require('gulp-file-include');
 const svgSprite = require('gulp-svg-sprite');
@@ -37,7 +37,7 @@ const cb = () => {}
 let srcFonts = './src/scss/_fonts.scss';
 let appSrcFonts = './src/fonts/';
 
-// Обработка 
+// Обработка @include font-face
 const fontsStyle = (done) => {
    
    let file_content = fs.readFileSync(srcFonts); // Чтение папки исходника
@@ -91,16 +91,43 @@ const htmlInclude = () => {
 // Обработка scss
 const styles = () => {
    return src( './src/scss/**/*.scss')
+      .pipe(sourcemaps.init())
       .pipe(sass({
          outputStyle: 'expanded'
       }).on('error', notify.onError()))
+      .pipe(rename({
+         suffix: '.min'
+      }))
       .pipe(autoPrefixer({
          cascade: false,
       }))
+      .pipe(GulpCleanCss({
+         level:2
+      }))
+      .pipe(sourcemaps.write('.'))
       .pipe(dest('./app/css'))
       .pipe(browserSync.stream());
 }
 
+
+// Обработка build scss
+const stylesBuild = () => {
+   return src( './src/scss/**/*.scss')
+      .pipe(sass({
+         outputStyle: 'expanded'
+      }).on('error', notify.onError()))
+      .pipe(rename({
+         suffix: '.min'
+      }))
+      .pipe(autoPrefixer({
+         cascade: false,
+      }))
+      .pipe(GulpCleanCss({
+         level:2
+      }))
+      .pipe(dest('./app/css'))
+      
+}
 // Обработка изображений
 const imgToApp = () => {
    return src(['./src/img/**.jpg' , './src/img/**.jpeg' ,'./src/img/**.png' ])
@@ -144,6 +171,35 @@ const scripts = () => {
    .pipe(browserSync.stream());
 }
 
+// Обработка  build js
+const scriptsBuild = () => {
+   return src('./src/js/main.js')
+   .pipe(webpackStream({
+      output:{
+         filename:'main.js',
+      },
+      module: {
+         rules: [
+           {
+             test: /\.m?js$/,
+             exclude: /node_modules/,
+             use: {
+               loader: 'babel-loader',
+               options: {
+                 presets: [
+                   ['@babel/preset-env', { targets: "defaults" }]
+                 ]
+               }
+             }
+           }
+         ]
+       }
+   }))
+   .pipe (uglify().on("error", notify.onError()))
+   .pipe(dest('./app/js'))
+}
+
+
 // Контроль изменений
 const watchFiles = () => {
    browserSync.init({
@@ -169,3 +225,5 @@ exports.fileinclude = htmlInclude;
 
 
 exports.default = series(clean, parallel( htmlInclude,scripts,fonts,imgToApp,svgSprites),fontsStyle,styles,watchFiles);
+
+exports.build = series(clean, parallel( htmlInclude,scriptsBuild,fonts,imgToApp,svgSprites),fontsStyle,stylesBuild,watchFiles);
