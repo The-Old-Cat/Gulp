@@ -90,11 +90,11 @@ const svgSprites = () => {
 }
 
 
-// Обработка HTML 
+// Обработка index.html 
 const htmlInclude = () => {
-   return src(['./src/index.html'])
+   return src(['./src/*.html'])
       .pipe(fileinclude({
-         prefix: '@',
+         prefix: '@@',
          basepath: '@file'
       }))
       .pipe(dest('./app'))
@@ -149,7 +149,7 @@ const imgToApp = () => {
       .pipe(browserSync.stream());
 }
 
-
+// Копирование assets в app
 const assetsToApp = () => {
    return src(['./src/assets/**/*' ])
       .pipe(dest('./app/assets/'))
@@ -241,13 +241,13 @@ const watchFiles = () => {
           baseDir: "./app"
       }
   });
-   watch('./src/index.html' , htmlInclude);
+   watch('./src/*.html' , htmlInclude);
    watch('./src/scss/**/*.scss' , styles);
    watch('./src/img/**.jpg' , imgToApp);
    watch('./src/img/**.png' , imgToApp);
    watch('./src/img/**.jpeg' , imgToApp);
-   watch('./src/img/**/*.svg', svgSprites);
    watch('./src/assets/*' , assetsToApp);
+   watch('./src/img/**/*.svg', svgSprites);
    watch('./src/fonts/**.ttf' , fonts);
    watch('./src/fonts/**.ttf' , fontsStyle);
    watch('./src/js/**/*.js' , scripts);
