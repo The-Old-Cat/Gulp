@@ -72,18 +72,20 @@ const svgSprites = () => {
           spacing: { // Add padding
             padding: 10
           },
-          dest: 'out/intermediate-svg' // Keep the intermediate files
+         //  dest: 'out/intermediate-svg' // Keep the intermediate files
         },
         mode: {
           css: { // Activate the «css» mode
             render: {
               css: true // Activate CSS output (with default options)
-            }
+              
+            },
+            dest: './'
           }
         }
       
       }))
-      .pipe(dest('./assets/'))
+      .pipe(dest('./app/assets/'))
       .pipe(browserSync.stream());
 }
 
@@ -144,6 +146,13 @@ const stylesBuild = () => {
 const imgToApp = () => {
    return src(['./src/img/**.jpg' , './src/img/**.jpeg' ,'./src/img/**.png' ])
       .pipe(dest('./app/img'))
+      .pipe(browserSync.stream());
+}
+
+
+const assetsToApp = () => {
+   return src(['./src/assets/**/*' ])
+      .pipe(dest('./app/assets/'))
       .pipe(browserSync.stream());
 }
 
@@ -238,6 +247,7 @@ const watchFiles = () => {
    watch('./src/img/**.png' , imgToApp);
    watch('./src/img/**.jpeg' , imgToApp);
    watch('./src/img/**/*.svg', svgSprites);
+   watch('./src/assets/*' , assetsToApp);
    watch('./src/fonts/**.ttf' , fonts);
    watch('./src/fonts/**.ttf' , fontsStyle);
    watch('./src/js/**/*.js' , scripts);
@@ -251,6 +261,6 @@ exports.fileinclude = htmlInclude;
 
 
 
-exports.default = series(clean, parallel( htmlInclude,scripts,fonts,imgToApp,svgSprites),fontsStyle,styles,watchFiles);
+exports.default = series(clean, parallel( htmlInclude,scripts,fonts,imgToApp,svgSprites,assetsToApp),fontsStyle,styles,watchFiles);
 
-exports.build = series(clean, parallel( htmlInclude,scriptsBuild,fonts,imgToApp,imgMin,svgSprites),fontsStyle,stylesBuild,watchFiles);
+exports.build = series(clean, parallel( htmlInclude,scriptsBuild,fonts,imgToApp,imgMin,svgSprites,assetsToApp),fontsStyle,stylesBuild,watchFiles);
