@@ -6,6 +6,7 @@
 
 
 
+
 .header__body{
     
   background: url('../img/maxresdefault.jpg');
@@ -14,6 +15,11 @@
     &__h1{
       color: rgb(69, 42, 165);
     }
+}
+
+.icon {
+  width: 150px;
+  height: 150px;
 }
 
 

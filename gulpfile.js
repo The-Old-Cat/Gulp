@@ -17,7 +17,6 @@ const webpackStream = require ('webpack-stream');
 const  uglify = require('gulp-uglify-es').default
 const imagemin = require('gulp-imagemin');
 
-
 // Обработка шрифтов 
 const fonts = () => {
   del(['app/fonts/*']) // Очистка папки со шрифтами
@@ -65,13 +64,26 @@ const fontsStyle = (done) => {
 const svgSprites = () => {
    return src('./src/img/**/*.svg')
       .pipe(svgSprite({
-         mode :{
-            stack:{
-               sprite:"../sprite.svg"
+        shape: {
+          dimension: { // Set maximum dimensions
+            maxWidth: 32,
+            maxHeight: 32
+          },
+          spacing: { // Add padding
+            padding: 10
+          },
+          dest: 'out/intermediate-svg' // Keep the intermediate files
+        },
+        mode: {
+          css: { // Activate the «css» mode
+            render: {
+              css: true // Activate CSS output (with default options)
             }
-         }
+          }
+        }
+      
       }))
-      .pipe(dest('./app/img/sprite'))
+      .pipe(dest('./assets/'))
       .pipe(browserSync.stream());
 }
 
