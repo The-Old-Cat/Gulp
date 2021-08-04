@@ -1,7 +1,13 @@
 # 1
 
+Start
+
 ```bash
-npm install --global gulp-cli gulp
+npm install --global gulp-cli gulp 
+```
+
+```bash
+npm i
 ```
 
 ## 2
@@ -16,4 +22,13 @@ prod tasck
 
 ```sh
 gulp build
+```
+
+## 3
+
+снипет svg
+разворачивает код для вставки svg картинки
+
+```html
+svg
 ```
