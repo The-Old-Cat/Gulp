@@ -7,7 +7,6 @@ const notify = require('gulp-notify');
 const rename = require('gulp-rename');
 const browserSync = require('browser-sync').create();
 const fileinclude = require('gulp-file-include');
-const svgSprite = require('gulp-svg-sprite');
 const ttf2woff = require ('gulp-ttf2woff');
 const ttf2woff2 = require ('gulp-ttf2woff2');
 const fs = require('fs');
@@ -16,6 +15,11 @@ const webpack = require ('webpack');
 const webpackStream = require ('webpack-stream');
 const  uglify = require('gulp-uglify-es').default
 const imagemin = require('gulp-imagemin');
+const svgSprite = require('gulp-svg-sprites'),
+      svgmin = require('gulp-svgmin'),
+      cheerio = require('gulp-cheerio'),
+      replace = require('gulp-replace');
+
 
 // Обработка шрифтов 
 const fonts = () => {
@@ -63,29 +67,33 @@ const fontsStyle = (done) => {
 // Создание svg sprite
 const svgSprites = () => {
    return src('./src/img/**/*.svg')
-      .pipe(svgSprite({
-        shape: {
-          dimension: { // Set maximum dimensions
-            maxWidth: 32,
-            maxHeight: 32
-          },
-          spacing: { // Add padding
-            padding: 10
-          },
-         //  dest: 'out/intermediate-svg' // Keep the intermediate files
-        },
-        mode: {
-          css: { // Activate the «css» mode
-            render: {
-              css: true // Activate CSS output (with default options)
-              
-            },
-            dest: './'
-          }
-        }
-      
-      }))
-      .pipe(dest('./app/assets/'))
+    // minify svg
+    .pipe(svgmin({
+      js2svg: {
+          pretty: true
+      }
+  }))
+  // remove all fill and style declarations in out shapes
+  .pipe(cheerio({
+      run: function ($) {
+          $('[fill]').removeAttr('fill');
+          $('[style]').removeAttr('style');
+      },
+      parserOptions: { xmlMode: true }
+  }))
+  // cheerio plugin create unnecessary string '>', so replace it.
+  .pipe(replace('&gt;', '>'))
+  // build svg sprite
+  .pipe(svgSprite({
+      mode: "symbols",
+      preview: false,
+      selector: "icon-%f",
+      svg: {
+         symbols: '../../../../../src/assets/symbol_sprite.html'
+      }
+   }
+))
+      .pipe(dest('./app/img/'))
       .pipe(browserSync.stream());
 }
 
@@ -115,9 +123,9 @@ const styles = () => {
       .pipe(autoPrefixer({
          cascade: false,
       }))
-      .pipe(GulpCleanCss({
-         level:2
-      }))
+      // .pipe(GulpCleanCss({
+      //    level:2
+      // }))
       .pipe(sourcemaps.write('.'))
       .pipe(dest('./app/css'))
       .pipe(browserSync.stream());
@@ -247,6 +255,7 @@ const watchFiles = () => {
    watch('./src/img/**.png' , imgToApp);
    watch('./src/img/**.jpeg' , imgToApp);
    watch('./src/assets/*' , assetsToApp);
+   watch('./src/assets/*' , svgSprites);
    watch('./src/img/**/*.svg', svgSprites);
    watch('./src/fonts/**.ttf' , fonts);
    watch('./src/fonts/**.ttf' , fontsStyle);
@@ -261,6 +270,6 @@ exports.fileinclude = htmlInclude;
 
 
 
-exports.default = series(clean, parallel( htmlInclude,scripts,fonts,imgToApp,svgSprites,assetsToApp),fontsStyle,styles,watchFiles);
+exports.default = series(clean, parallel( htmlInclude,scripts,fonts,imgToApp,svgSprites),assetsToApp,fontsStyle,styles,watchFiles);
 
-exports.build = series(clean, parallel( htmlInclude,scriptsBuild,fonts,imgToApp,imgMin,svgSprites,assetsToApp),fontsStyle,stylesBuild,watchFiles);
+exports.build = series(clean, parallel( htmlInclude,scriptsBuild,fonts,imgToApp,imgMin,svgSprites),assetsToApp,fontsStyle,stylesBuild,watchFiles);

@@ -3,8 +3,16 @@
 @import 'fonts';
 @import 'header';
 @import 'footer';
+@import 'var';
 
-
+// Пример 
+// .icon-avatar{
+//   display: inline-block;
+//   width: 30px;
+//   height: 30px;
+//   fill: $icon-color;
+//   margin: 5px;
+// }
 
 
 .header__body{
@@ -15,12 +23,24 @@
     &__h1{
       color: rgb(69, 42, 165);
     }
+    
 }
 
-.icon {
-  width: 150px;
-  height: 150px;
+
+.icon-avatar{
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  fill: $icon-color;
+  margin: 5px;
 }
 
+.icon-book{
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  fill: $icon-color;
+  margin: 5px;
+}
 
 
